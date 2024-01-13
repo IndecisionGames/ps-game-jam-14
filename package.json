@@ -1,0 +1,19 @@
+{
+  "name": "game-jam-14",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --open",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8",
+    "phaser": "^3.70.0"
+  },
+  "dependencies": {
+    
+  }
+}
