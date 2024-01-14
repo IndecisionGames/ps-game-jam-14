@@ -14,10 +14,11 @@ function randInt(x: number) {
 }
 
 export default class GameScene extends Scene {
-  private camera: Cameras.Scene2D.Camera | undefined;
+  private camera?: Cameras.Scene2D.Camera;
   private highlights: GameObjects.Rectangle[] = [];
-  private grid: GameObjects.Grid | undefined;
+  private grid?: GameObjects.Grid;
   private fireCells: Set<Cell> = new Set();
+  private fireSprites: Map<string, GameObjects.Sprite> = new Map();
 
   constructor() {
     super("scene-game");
@@ -83,7 +84,7 @@ export default class GameScene extends Scene {
         .play("fire-loop");
       sprite.setOrigin(0.5, 0.5);
       sprite.setScale(2.45, 2.45);
-      // console.log(x, y, x * CELL_SIZE);
+      this.fireSprites.set(cellKey(x, y), sprite);
     }
   }
 
@@ -104,6 +105,19 @@ export default class GameScene extends Scene {
       this.camera.scrollX -= x / this.camera.zoom;
       this.camera.scrollY -= y / this.camera.zoom;
       this.updateHighlightPosition(pointer);
+    });
+
+    this.input.on("pointerdown", (pointer: Input.Pointer) => {
+      if (pointer.leftButtonDown()) {
+        const x = Math.floor(pointer.worldX / CELL_SIZE);
+        const y = Math.floor(pointer.worldY / CELL_SIZE);
+
+        if (this.fireSprites.has(cellKey(x, y))) {
+          this.fireSprites.get(cellKey(x, y))?.destroy();
+          this.fireSprites.delete(cellKey(x, y));
+          console.log(this.fireSprites.size);
+        }
+      }
     });
 
     this.input.on("wheel", (pointer: any, _gameObject: any, _deltaX: any, deltaY: any, _deltaZ: any) => {
@@ -141,4 +155,8 @@ export default class GameScene extends Scene {
       this.highlights[0].setPosition(cellX, cellY);
     }
   }
+}
+
+function cellKey(x: number, y: number) {
+  return `${x},${y}`;
 }
