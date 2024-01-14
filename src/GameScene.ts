@@ -15,6 +15,7 @@ function randInt(x: number) {
 
 export default class GameScene extends Scene {
   private camera: Cameras.Scene2D.Camera | undefined;
+  private highlights: GameObjects.Rectangle[] = [];
   private grid: GameObjects.Grid | undefined;
   private fireCells: Set<Cell> = new Set();
 
@@ -32,6 +33,11 @@ export default class GameScene extends Scene {
     // Set up grid
     this.grid = this.add.grid(0, 0, GRID_SIZE, GRID_SIZE, CELL_SIZE, CELL_SIZE, 0xbab8b8, 1, 0x828282);
     this.grid.setOrigin(0, 0);
+
+    // Set up highlights
+    this.highlights.push(
+      this.add.rectangle(-9999, -9999, CELL_SIZE, CELL_SIZE, 0x000000, 0.2).setInteractive({ cursor: "pointer" })
+    );
 
     // Animations
     const fireLoopConfig = {
@@ -91,14 +97,16 @@ export default class GameScene extends Scene {
     this.input.pointer1.motionFactor = 0.5;
 
     this.input.on("pointermove", (pointer: Input.Pointer) => {
+      this.updateHighlightPosition(pointer);
       if (!this.camera) return;
       if (!pointer.isDown) return;
       const { x, y } = pointer.velocity;
       this.camera.scrollX -= x / this.camera.zoom;
       this.camera.scrollY -= y / this.camera.zoom;
+      this.updateHighlightPosition(pointer);
     });
 
-    this.input.on("wheel", (_pointer: any, _gameObject: any, _deltaX: any, deltaY: any, _deltaZ: any) => {
+    this.input.on("wheel", (pointer: any, _gameObject: any, _deltaX: any, deltaY: any, _deltaZ: any) => {
       if (!this.camera) return;
 
       // Zoom out
@@ -120,6 +128,17 @@ export default class GameScene extends Scene {
           this.camera.zoom = MAX_ZOOM;
         }
       }
+      this.updateHighlightPosition(pointer);
     });
+  }
+
+  updateHighlightPosition(pointer: Input.Pointer) {
+    if (pointer.worldX > GRID_SIZE || pointer.worldX < 0 || pointer.worldY > GRID_SIZE || pointer.worldY < 0) {
+      this.highlights[0].setPosition(-9999, -9999);
+    } else {
+      const cellX = Math.floor(pointer.worldX / CELL_SIZE) * CELL_SIZE + 0.5 * CELL_SIZE;
+      const cellY = Math.floor(pointer.worldY / CELL_SIZE) * CELL_SIZE + 0.5 * CELL_SIZE;
+      this.highlights[0].setPosition(cellX, cellY);
+    }
   }
 }
