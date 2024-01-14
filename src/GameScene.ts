@@ -5,7 +5,7 @@ const GRID_SIZE = 3000;
 const CELL_SIZE = GRID_SIZE / GRID_CELLS;
 
 const MAX_ZOOM = 1.5;
-const MIN_ZOOM = 0.3;
+const MIN_ZOOM = 0.5;
 const ZOOM_STEP = 0.1;
 type Cell = { x: number; y: number };
 
@@ -25,7 +25,7 @@ export default class GameScene extends Scene {
   create() {
     // Set up camera
     this.camera = this.cameras.main;
-    this.cameras.main.setBounds(-GRID_SIZE / 2, -GRID_SIZE / 2, 2 * GRID_SIZE, 2 * GRID_SIZE);
+    this.cameras.main.setBounds(-GRID_SIZE / 8, -GRID_SIZE / 8, 1.25 * GRID_SIZE, 1.25 * GRID_SIZE);
     this.cameras.main.setZoom(1);
     this.cameras.main.centerOn(GRID_SIZE / 2, GRID_SIZE / 2);
 
@@ -45,6 +45,8 @@ export default class GameScene extends Scene {
     // FIXME: Just for testing
     this.initializeRandomFireCells();
     this.handleInput();
+
+    this.scene.launch("HudScene");
   }
 
   preload() {
@@ -56,7 +58,7 @@ export default class GameScene extends Scene {
   }
 
   initializeRandomFireCells() {
-    while (this.fireCells.size < 10) {
+    while (this.fireCells.size < 25) {
       this.spawnFireCell(this.randomXY(), this.randomXY());
     }
   }
@@ -96,8 +98,10 @@ export default class GameScene extends Scene {
       this.camera.scrollY -= y / this.camera.zoom;
     });
 
-    this.input.on("wheel", (pointer: any, gameObjects: any, deltaX: any, deltaY: any, deltaZ: any) => {
+    this.input.on("wheel", (_pointer: any, _gameObject: any, _deltaX: any, deltaY: any, _deltaZ: any) => {
       if (!this.camera) return;
+
+      // Zoom out
       if (deltaY > 0) {
         var newZoom = this.camera.zoom - ZOOM_STEP;
         if (newZoom > MIN_ZOOM) {
@@ -107,6 +111,7 @@ export default class GameScene extends Scene {
         }
       }
 
+      // Zoom in
       if (deltaY < 0) {
         var newZoom = this.camera.zoom + ZOOM_STEP;
         if (newZoom < MAX_ZOOM) {
@@ -115,9 +120,6 @@ export default class GameScene extends Scene {
           this.camera.zoom = MAX_ZOOM;
         }
       }
-
-      // this.camera.centerOn(pointer.worldX, pointer.worldY);
-      // this.camera.pan(pointer.worldX, pointer.worldY, 2000, "Power2");
     });
   }
 }
