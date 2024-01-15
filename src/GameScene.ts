@@ -141,7 +141,9 @@ export default class GameScene extends Scene {
       this.updateHighlightPosition(pointer);
     });
 
-    this.input.on("pointerdown", (pointer: Input.Pointer) => {
+    this.input.setTopOnly(true).on("pointerdown", (pointer: Input.Pointer, objectsClicked: Phaser.GameObjects.GameObject[]) => {
+      // TODO: Check if HUD element was clicked
+      console.log("Objects clicked", objectsClicked);
       if (pointer.leftButtonDown()) {
         const x = Math.floor(pointer.worldX / CELL_SIZE);
         const y = Math.floor(pointer.worldY / CELL_SIZE);
