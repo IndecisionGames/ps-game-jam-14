@@ -7,21 +7,38 @@ const CELL_SIZE = GRID_SIZE / GRID_CELLS;
 const MAX_ZOOM = 1.5;
 const MIN_ZOOM = 0.5;
 const ZOOM_STEP = 0.1;
+
+const SPREAD_TIME = 3000; // ms
+const SPREAD_CHANCE = 0.2;
+
 type Cell = { x: number; y: number };
+
+enum Direction {
+  Up,
+  Down,
+  Left,
+  Right,
+}
 
 function randInt(x: number) {
   return Math.floor(Math.random() * x) % x;
+}
+
+function cell(x: number, y: number) {
+  return `${x},${y}`;
 }
 
 export default class GameScene extends Scene {
   private camera?: Cameras.Scene2D.Camera;
   private highlights: GameObjects.Rectangle[] = [];
   private grid?: GameObjects.Grid;
-  private fireCells: Set<Cell> = new Set();
+  private fireCells: Set<string> = new Set();
+  private fireCellMap: Map<string, Cell> = new Map();
   private fireSprites: Map<string, GameObjects.Sprite> = new Map();
+  private timer: number = 0;
 
   constructor() {
-    super("scene-game");
+    super({ key: "GameScene" });
   }
 
   create() {
@@ -77,20 +94,37 @@ export default class GameScene extends Scene {
   coordinate() {}
 
   spawnFireCell(x: number, y: number) {
-    if (!this.fireCells.has({ x, y })) {
-      this.fireCells.add({ x, y });
+    if (!this.fireCells.has(cell(x, y))) {
+      this.fireCells.add(cell(x, y));
       let sprite = this.add
         .sprite(x * CELL_SIZE + CELL_SIZE / 2, y * CELL_SIZE + CELL_SIZE / 3, "fire")
         .play("fire-loop");
       sprite.setOrigin(0.5, 0.5);
       sprite.setScale(2.45, 2.45);
-      this.fireSprites.set(cellKey(x, y), sprite);
+      this.fireSprites.set(cell(x, y), sprite);
+      this.fireCellMap.set(cell(x, y), { x, y });
     }
   }
 
-  update(_time: number, _delta: number) {
-    // TODO: Fire spreading mechanic
-    //
+  update(time: number, _delta: number) {
+    if (time - this.timer > SPREAD_TIME) {
+      // for each flame give it a small % chance to spread in a random direction
+      this.fireCellMap.forEach((c: Cell, _key: string) => {
+        if (Math.random() <= SPREAD_CHANCE) {
+          const validCells: Cell[] = [];
+          if (c.x > 0 && !this.fireCells.has(cell(c.x - 1, c.y))) validCells.push({ x: c.x - 1, y: c.y });
+          if (c.x < GRID_CELLS - 1 && !this.fireCells.has(cell(c.x + 1, c.y))) validCells.push({ x: c.x + 1, y: c.y });
+          if (c.y > 0 && !this.fireCells.has(cell(c.x, c.y - 1))) validCells.push({ x: c.x, y: c.y - 1 });
+          if (c.y < GRID_CELLS - 1 && !this.fireCells.has(cell(c.x, c.y + 1))) validCells.push({ x: c.x, y: c.y + 1 });
+
+          if (validCells.length > 0) {
+            const spreadCell = validCells[randInt(validCells.length)];
+            this.spawnFireCell(spreadCell.x, spreadCell.y);
+          }
+        }
+      });
+      this.timer = time;
+    }
   }
 
   handleInput() {
@@ -112,10 +146,11 @@ export default class GameScene extends Scene {
         const x = Math.floor(pointer.worldX / CELL_SIZE);
         const y = Math.floor(pointer.worldY / CELL_SIZE);
 
-        if (this.fireSprites.has(cellKey(x, y))) {
-          this.fireSprites.get(cellKey(x, y))?.destroy();
-          this.fireSprites.delete(cellKey(x, y));
-          console.log(this.fireSprites.size);
+        if (this.fireSprites.has(cell(x, y))) {
+          this.fireSprites.get(cell(x, y))?.destroy();
+          this.fireSprites.delete(cell(x, y));
+          this.fireCellMap.delete(cell(x, y));
+          this.fireCells.delete(cell(x, y));
         }
       }
     });
@@ -155,8 +190,4 @@ export default class GameScene extends Scene {
       this.highlights[0].setPosition(cellX, cellY);
     }
   }
-}
-
-function cellKey(x: number, y: number) {
-  return `${x},${y}`;
 }

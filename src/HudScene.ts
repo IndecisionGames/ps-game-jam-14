@@ -1,4 +1,4 @@
-import { Cameras, Input, GameObjects, Scene } from "phaser";
+import { GameObjects, Scene } from "phaser";
 
 export default class HudScene extends Scene {
   private score?: number;
