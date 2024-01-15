@@ -44,23 +44,44 @@ export default class GameScene extends Scene {
   create() {
     // Set up camera
     this.camera = this.cameras.main;
-    this.cameras.main.setBounds(-GRID_SIZE / 8, -GRID_SIZE / 8, 1.25 * GRID_SIZE, 1.25 * GRID_SIZE);
+    this.cameras.main.setBounds(
+      -GRID_SIZE / 8,
+      -GRID_SIZE / 8,
+      1.25 * GRID_SIZE,
+      1.25 * GRID_SIZE,
+    );
     this.cameras.main.setZoom(1);
     this.cameras.main.centerOn(GRID_SIZE / 2, GRID_SIZE / 2);
 
     // Set up grid
-    this.grid = this.add.grid(0, 0, GRID_SIZE, GRID_SIZE, CELL_SIZE, CELL_SIZE, 0xbab8b8, 1, 0x828282);
+    this.grid = this.add.grid(
+      0,
+      0,
+      GRID_SIZE,
+      GRID_SIZE,
+      CELL_SIZE,
+      CELL_SIZE,
+      0xbab8b8,
+      1,
+      0x828282,
+    );
     this.grid.setOrigin(0, 0);
 
     // Set up highlights
     this.highlights.push(
-      this.add.rectangle(-9999, -9999, CELL_SIZE, CELL_SIZE, 0x000000, 0.2).setInteractive({ cursor: "pointer" })
+      this.add
+        .rectangle(-9999, -9999, CELL_SIZE, CELL_SIZE, 0x000000, 0.2)
+        .setInteractive({ cursor: "pointer" }),
     );
 
     // Animations
     const fireLoopConfig = {
       key: "fire-loop",
-      frames: this.anims.generateFrameNumbers("fire-loop", { start: 0, end: 7, first: 0 }),
+      frames: this.anims.generateFrameNumbers("fire-loop", {
+        start: 0,
+        end: 7,
+        first: 0,
+      }),
       frameRate: 8,
       repeat: -1,
     };
@@ -75,10 +96,14 @@ export default class GameScene extends Scene {
 
   preload() {
     // this.load.image('map', 'assets/tests/camera/earthbound-scarab.png');
-    this.load.spritesheet("fire-loop", "./assets/fire_fx_v1.0/png/orange/loops/burning_loop_1.png", {
-      frameWidth: 24,
-      frameHeight: 32,
-    });
+    this.load.spritesheet(
+      "fire-loop",
+      "./assets/fire_fx_v1.0/png/orange/loops/burning_loop_1.png",
+      {
+        frameWidth: 24,
+        frameHeight: 32,
+      },
+    );
   }
 
   initializeRandomFireCells() {
@@ -97,7 +122,11 @@ export default class GameScene extends Scene {
     if (!this.fireCells.has(cell(x, y))) {
       this.fireCells.add(cell(x, y));
       let sprite = this.add
-        .sprite(x * CELL_SIZE + CELL_SIZE / 2, y * CELL_SIZE + CELL_SIZE / 3, "fire")
+        .sprite(
+          x * CELL_SIZE + CELL_SIZE / 2,
+          y * CELL_SIZE + CELL_SIZE / 3,
+          "fire",
+        )
         .play("fire-loop");
       sprite.setOrigin(0.5, 0.5);
       sprite.setScale(2.45, 2.45);
@@ -112,10 +141,14 @@ export default class GameScene extends Scene {
       this.fireCellMap.forEach((c: Cell, _key: string) => {
         if (Math.random() <= SPREAD_CHANCE) {
           const validCells: Cell[] = [];
-          if (c.x > 0 && !this.fireCells.has(cell(c.x - 1, c.y))) validCells.push({ x: c.x - 1, y: c.y });
-          if (c.x < GRID_CELLS - 1 && !this.fireCells.has(cell(c.x + 1, c.y))) validCells.push({ x: c.x + 1, y: c.y });
-          if (c.y > 0 && !this.fireCells.has(cell(c.x, c.y - 1))) validCells.push({ x: c.x, y: c.y - 1 });
-          if (c.y < GRID_CELLS - 1 && !this.fireCells.has(cell(c.x, c.y + 1))) validCells.push({ x: c.x, y: c.y + 1 });
+          if (c.x > 0 && !this.fireCells.has(cell(c.x - 1, c.y)))
+            validCells.push({ x: c.x - 1, y: c.y });
+          if (c.x < GRID_CELLS - 1 && !this.fireCells.has(cell(c.x + 1, c.y)))
+            validCells.push({ x: c.x + 1, y: c.y });
+          if (c.y > 0 && !this.fireCells.has(cell(c.x, c.y - 1)))
+            validCells.push({ x: c.x, y: c.y - 1 });
+          if (c.y < GRID_CELLS - 1 && !this.fireCells.has(cell(c.x, c.y + 1)))
+            validCells.push({ x: c.x, y: c.y + 1 });
 
           if (validCells.length > 0) {
             const spreadCell = validCells[randInt(validCells.length)];
@@ -141,54 +174,78 @@ export default class GameScene extends Scene {
       this.updateHighlightPosition(pointer);
     });
 
-    this.input.setTopOnly(true).on("pointerdown", (pointer: Input.Pointer, objectsClicked: Phaser.GameObjects.GameObject[]) => {
-      // TODO: Check if HUD element was clicked
-      console.log("Objects clicked", objectsClicked);
-      if (pointer.leftButtonDown()) {
-        const x = Math.floor(pointer.worldX / CELL_SIZE);
-        const y = Math.floor(pointer.worldY / CELL_SIZE);
+    this.input
+      .setTopOnly(true)
+      .on(
+        "pointerdown",
+        (
+          pointer: Input.Pointer,
+          objectsClicked: Phaser.GameObjects.GameObject[],
+        ) => {
+          // TODO: Check if HUD element was clicked
+          console.log("Objects clicked", objectsClicked);
+          if (pointer.leftButtonDown()) {
+            const x = Math.floor(pointer.worldX / CELL_SIZE);
+            const y = Math.floor(pointer.worldY / CELL_SIZE);
 
-        if (this.fireSprites.has(cell(x, y))) {
-          this.fireSprites.get(cell(x, y))?.destroy();
-          this.fireSprites.delete(cell(x, y));
-          this.fireCellMap.delete(cell(x, y));
-          this.fireCells.delete(cell(x, y));
+            if (this.fireSprites.has(cell(x, y))) {
+              this.fireSprites.get(cell(x, y))?.destroy();
+              this.fireSprites.delete(cell(x, y));
+              this.fireCellMap.delete(cell(x, y));
+              this.fireCells.delete(cell(x, y));
+            }
+          }
+        },
+      );
+
+    this.input.on(
+      "wheel",
+      (
+        pointer: any,
+        _gameObject: any,
+        _deltaX: any,
+        deltaY: any,
+        _deltaZ: any,
+      ) => {
+        if (!this.camera) return;
+
+        // Zoom out
+        if (deltaY > 0) {
+          var newZoom = this.camera.zoom - ZOOM_STEP;
+          if (newZoom > MIN_ZOOM) {
+            this.camera.zoom = newZoom;
+          } else {
+            this.camera.zoom = MIN_ZOOM;
+          }
         }
-      }
-    });
 
-    this.input.on("wheel", (pointer: any, _gameObject: any, _deltaX: any, deltaY: any, _deltaZ: any) => {
-      if (!this.camera) return;
-
-      // Zoom out
-      if (deltaY > 0) {
-        var newZoom = this.camera.zoom - ZOOM_STEP;
-        if (newZoom > MIN_ZOOM) {
-          this.camera.zoom = newZoom;
-        } else {
-          this.camera.zoom = MIN_ZOOM;
+        // Zoom in
+        if (deltaY < 0) {
+          var newZoom = this.camera.zoom + ZOOM_STEP;
+          if (newZoom < MAX_ZOOM) {
+            this.camera.zoom = newZoom;
+          } else {
+            this.camera.zoom = MAX_ZOOM;
+          }
         }
-      }
-
-      // Zoom in
-      if (deltaY < 0) {
-        var newZoom = this.camera.zoom + ZOOM_STEP;
-        if (newZoom < MAX_ZOOM) {
-          this.camera.zoom = newZoom;
-        } else {
-          this.camera.zoom = MAX_ZOOM;
-        }
-      }
-      this.updateHighlightPosition(pointer);
-    });
+        this.updateHighlightPosition(pointer);
+      },
+    );
   }
 
   updateHighlightPosition(pointer: Input.Pointer) {
-    if (pointer.worldX > GRID_SIZE || pointer.worldX < 0 || pointer.worldY > GRID_SIZE || pointer.worldY < 0) {
+    if (
+      pointer.worldX > GRID_SIZE ||
+      pointer.worldX < 0 ||
+      pointer.worldY > GRID_SIZE ||
+      pointer.worldY < 0
+    ) {
       this.highlights[0].setPosition(-9999, -9999);
     } else {
-      const cellX = Math.floor(pointer.worldX / CELL_SIZE) * CELL_SIZE + 0.5 * CELL_SIZE;
-      const cellY = Math.floor(pointer.worldY / CELL_SIZE) * CELL_SIZE + 0.5 * CELL_SIZE;
+      const cellX =
+        Math.floor(pointer.worldX / CELL_SIZE) * CELL_SIZE + 0.5 * CELL_SIZE;
+      const cellY =
+        Math.floor(pointer.worldY / CELL_SIZE) * CELL_SIZE + 0.5 * CELL_SIZE;
       this.highlights[0].setPosition(cellX, cellY);
     }
   }

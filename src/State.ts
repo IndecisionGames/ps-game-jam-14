@@ -1,12 +1,9 @@
-import {BehaviorSubject} from "rxjs";
+import { BehaviorSubject } from "rxjs";
 
 class GameState {
+  selectedAbilityIndex$ = new BehaviorSubject<number>(0);
 
-    selectedAbilityIndex$ = new BehaviorSubject<number>(0);
-
-    reset() {
-    }
-
+  reset() {}
 }
 
 export const gameState = new GameState();
